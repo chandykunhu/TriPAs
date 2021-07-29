@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import TripasManager from "./TripasTimerManager";
 
 const cats = {
 	'Coding Cat': 'https://i.postimg.cc/fbm33cJG/logo.png',
@@ -32,6 +33,14 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 	}
+	//Timer-----------------------------------------------------------------------
+	const config = vscode.workspace.getConfiguration("cat-coding");
+	const tripasManager = new TripasManager(config.workTime, config.pauseTime);
+
+	tripasManager.start();
+
+	context.subscriptions.push(tripasManager);
+	//-----------------------------------------------------------------------------
 }
 
 function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
