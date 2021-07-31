@@ -36,7 +36,7 @@ class TripasManager {
 	// UI properties
 	private _statusBarText: StatusBarItem;
 
-	constructor(public workTime: number = 0.2, public pauseTime: number = 0.1, public lunchTime: number = 0.5) {
+	constructor(public workTime: number = 2, public pauseTime: number = 0.2, public lunchTime: number = 0.5) {
 		// create status bar items
 		if (!this._statusBarText) {
 			this._statusBarText = window.createStatusBarItem(StatusBarAlignment.Left);
