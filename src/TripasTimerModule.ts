@@ -1,12 +1,13 @@
 import { InputBoxOptions, window } from "vscode";
-
+import * as vscode from 'vscode';
 import TripasStatus from "./TripasTimerStatus";
 import Timer from "./TripasTimer";
 
 class Tripas {
 	// properties
 	private _status: TripasStatus;
-	
+	private tripasIndex: number = 0;
+
 
 	public get status() {
 		return this._status;
@@ -24,9 +25,11 @@ class Tripas {
 	// events
 	public onTick: () => void;
 
-	constructor(public workTime: number = 1 * 60, public pauseTime: number = 0.5 * 60) {
+	constructor(public workTime: number = 3 * 60, public pauseTime: number = 0.5 * 60,
+		public lunchTime: number = 1 * 60) {
 		this.workTime = Math.floor(this.workTime);
 		this.pauseTime = Math.floor(this.pauseTime);
+		this.lunchTime = Math.floor(this.lunchTime);
 
 		this._timer = new Timer();
 		this.status = TripasStatus.None;
@@ -45,36 +48,64 @@ class Tripas {
 		if (status === TripasStatus.Rest) {
 			this.timer.reset(this.pauseTime);
 		}
+		if (status === TripasStatus.Lunch) {
+			this.timer.reset(this.lunchTime);
+		}
 	}
 
 	// public methods
 	public start(status: TripasStatus = TripasStatus.Work) {
-		if (status === TripasStatus.Work || status === TripasStatus.Rest) {
+		if (status === TripasStatus.Work || status === TripasStatus.Rest || status === TripasStatus.Lunch) {
 			if (this.status !== TripasStatus.Paused) {
 				this.resetTimer(status);
 			}
-			let options: InputBoxOptions = {
-				prompt: "Label: ",
-				placeHolder: "(placeholder)"
-			}
-			
 			this.status = status;
-
-			this._timer.start(() => {
+			const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+			this._timer.start(async () => {
 				// stop the timer if no second left
 				if (this.timer.currentTime <= 0) {
 					if (this.status === TripasStatus.Work) {
-						window.showInformationMessage("Work done! Take a break.");
-						this.start(TripasStatus.Rest);
+						if (this.tripasIndex === 2) {
+							this.timer.stop();
 
+							let Yes = 'Yes';
+							let No = 'Need more Time';
+							vscode.window.showInformationMessage('Its Lunch Time, Begin the AI Process?', Yes, No)
+								.then( selection => {
+									if (selection === Yes) {
+										//vscode.env.openExternal(vscode.Uri.parse(
+											//'https://www.merriam-webster.com/dictionary/hep'));
+									
+									this.workTime = 20;
+									this.start(TripasStatus.Lunch);	
+									}
+									if (selection === No) {
+										this.tripasIndex--;
+										this.workTime = 30;
+									this.start(TripasStatus.Work);
+									}
+								});
+
+								await delay (10000);
+								this.workTime = 20;
+								this.start(TripasStatus.Work);
+								
+						}
+						else {
+							window.showInformationMessage("Work done! Take a break.");
+							this.start(TripasStatus.Rest);
+						}
+						this.tripasIndex++;
 					}
 					else if (this.status === TripasStatus.Rest) {
-						window.showInformationMessage("Please resume the work.",);
-						window.showInputBox(options).then(value => {
-							if (!value) return;
-							const answer1 = value;
-							// show the next dialog, etc.
-						});
+						window.showInformationMessage("Please resume the work.");
+
+						this.start(TripasStatus.Work);
+					}
+					else if (this.status === TripasStatus.Lunch) {
+					
+						window.showInformationMessage("AI work done. Please resume work.");
+
 						this.start(TripasStatus.Work);
 					}
 				}

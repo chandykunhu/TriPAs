@@ -15,9 +15,11 @@ class TripasManager {
 	public get currentState() {
 		switch (this.currentTripas.status) {
 			case TripasStatus.Work:
-				return " - work";
+				return " - Work Time";
 			case TripasStatus.Rest:
-				return " - rest";
+				return " - Rest Time";
+			case TripasStatus.Lunch:
+				return " - Lunch Time";
 			case TripasStatus.Paused:
 				return " - paused";
 			case TripasStatus.Break:
@@ -34,7 +36,7 @@ class TripasManager {
 	// UI properties
 	private _statusBarText: StatusBarItem;
 
-	constructor(public workTime: number = 3, public pauseTime: number = 1) {
+	constructor(public workTime: number = 0.2, public pauseTime: number = 0.1, public lunchTime: number = 0.5) {
 		// create status bar items
 		if (!this._statusBarText) {
 			this._statusBarText = window.createStatusBarItem(StatusBarAlignment.Left);
@@ -111,7 +113,7 @@ class TripasManager {
 		this._tripasIndex = 0;
 		this.tripasi = [];
 
-		this.tripasi.push(new Tripas(this.workTime * 60, this.pauseTime * 60));
+		this.tripasi.push(new Tripas(this.workTime * 60, this.pauseTime * 60,this.lunchTime * 60));
 	}
 
 	public dispose() {
